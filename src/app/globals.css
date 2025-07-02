@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 日式和风滚动条样式 */
+.japanese-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.japanese-scrollbar::-webkit-scrollbar-track {
+  background: rgba(120, 113, 108, 0.1);
+  border-radius: 2px;
+}
+
+.japanese-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(251, 113, 133, 0.4);
+  border-radius: 2px;
+}
+
+.japanese-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 113, 133, 0.6);
+}
