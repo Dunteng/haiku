@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { generateHaiku as generateHaikuAI } from '../lib/ai';
 
 interface Haiku {
   id: string;
@@ -16,40 +17,32 @@ export default function HaikuGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingHaiku, setEditingHaiku] = useState<Haiku | null>(null);
 
-  // 模拟俳句生成逻辑 - 实际项目中可以集成AI API
+  // AI俳句生成逻辑
   const generateHaiku = async () => {
     if (!theme.trim()) return;
     
     setIsGenerating(true);
     
-    // 模拟API调用延迟
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // 示例俳句生成逻辑（实际应该调用AI服务）
-    const sampleHaikus = {
-      '春天': ['樱花飞舞时', '温暖春风轻抚面', '新绿满枝头'],
-      '夏天': ['蝉鸣声阵阵', '绿荫下乘凉避暑', '清风徐徐来'],
-      '秋天': ['黄叶满地舞', '秋风萧瑟送归雁', '丰收在田间'],
-      '冬天': ['雪花纷纷落', '寒风刺骨人归家', '炉火温暖心'],
-      '月亮': ['皎月当空照', '清辉洒向人间路', '思君不见君'],
-      '山水': ['青山如黛远', '碧水潺潺绕石流', '鸟啼花香浓'],
-      '樱花': ['粉樱满枝头', '花瓣随风轻飘舞', '春意入心扉'],
-      '茶': ['一盏清茶香', '静坐品味人生味', '禅心自然来'],
-      '默认': ['静夜思绪飞', '月光洒满窗台上', '诗意自心来']
-    };
-    
-    const haikuLines = sampleHaikus[theme as keyof typeof sampleHaikus] || sampleHaikus['默认'];
-    
-    const newHaiku: Haiku = {
-      id: Date.now().toString(),
-      lines: [haikuLines[0], haikuLines[1], haikuLines[2]],
-      theme,
-      timestamp: new Date()
-    };
-    
-    setCurrentHaiku(newHaiku);
-    setHaikuHistory(prev => [newHaiku, ...prev.slice(0, 9)]); // 保留最近10个
-    setIsGenerating(false);
+    try {
+      // 调用AI生成俳句
+      const haikuLines = await generateHaikuAI(theme);
+      
+      const newHaiku: Haiku = {
+        id: Date.now().toString(),
+        lines: [haikuLines[0], haikuLines[1], haikuLines[2]],
+        theme,
+        timestamp: new Date()
+      };
+      
+      setCurrentHaiku(newHaiku);
+      setHaikuHistory(prev => [newHaiku, ...prev.slice(0, 9)]); // 保留最近10个
+      
+    } catch (error) {
+      console.error('俳句生成失败:', error);
+      // 生成失败时显示错误提示（可以根据需要添加错误状态）
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const editHaiku = (haiku: Haiku) => {
