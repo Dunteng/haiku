@@ -1,11 +1,9 @@
-// AI俳句生成服务
-// 需要先安装: npm install openai
-
+import { NextResponse } from 'next/server';
 import OpenAI from "openai";
 
 const openai = new OpenAI({
   baseURL: 'https://api.deepseek.com',
-  apiKey: process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || 'sk-0a183ae4cbb1446facfc99e37576886b'
+  apiKey: 'sk-0a183ae4cbb1446facfc99e37576886b'
 });
 
 // 生成俳句的系统提示词
@@ -24,20 +22,21 @@ const HAIKU_SYSTEM_PROMPT = `你是一个专业的俳句创作大师。请根据
 温暖春风轻抚面  
 新绿满枝头`;
 
-/**
- * 根据主题生成俳句
- * @param {string} theme - 俳句主题
- * @returns {Promise<string[]>} - 返回包含三行俳句的数组
- */
-export async function generateHaiku(theme) {
+export async function POST(request) {
   try {
+    const { theme } = await request.json();
+    
+    if (!theme) {
+      return NextResponse.json({ error: '请提供俳句主题' }, { status: 400 });
+    }
+
     const completion = await openai.chat.completions.create({
       messages: [
         { role: "system", content: HAIKU_SYSTEM_PROMPT },
         { role: "user", content: `请以"${theme}"为主题创作一首俳句` }
       ],
       model: "deepseek-chat",
-      temperature: 0.8, // 增加创意性
+      temperature: 0.8,
       max_tokens: 100,
     });
 
@@ -46,12 +45,18 @@ export async function generateHaiku(theme) {
     // 将俳句分割成三行
     const lines = haikuText.split('\n').filter(line => line.trim() !== '');
     
-    // 确保有三行，如果不足则使用默认俳句
+    // 确保有三行
     if (lines.length >= 3) {
-      return [lines[0].trim(), lines[1].trim(), lines[2].trim()];
+      return NextResponse.json({
+        lines: [lines[0].trim(), lines[1].trim(), lines[2].trim()],
+        theme
+      });
     } else {
       // 备用俳句
-      return ['静夜思绪飞', '月光洒满窗台上', '诗意自心来'];
+      return NextResponse.json({
+        lines: ['静夜思绪飞', '月光洒满窗台上', '诗意自心来'],
+        theme
+      });
     }
     
   } catch (error) {
@@ -69,6 +74,9 @@ export async function generateHaiku(theme) {
       '茶': ['一盏清茶香', '静坐品味人生味', '禅心自然来'],
     };
     
-    return fallbackHaikus[theme] || fallbackHaikus['默认'] || ['静夜思绪飞', '月光洒满窗台上', '诗意自心来'];
+    const { theme } = await request.json().catch(() => ({}));
+    const lines = fallbackHaikus[theme] || ['静夜思绪飞', '月光洒满窗台上', '诗意自心来'];
+    
+    return NextResponse.json({ lines, theme });
   }
 } 

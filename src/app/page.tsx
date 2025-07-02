@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { generateHaiku as generateHaikuAI } from '../lib/ai';
 
 interface Haiku {
   id: string;
@@ -24,12 +23,24 @@ export default function HaikuGenerator() {
     setIsGenerating(true);
     
     try {
-      // 调用AI生成俳句
-      const haikuLines = await generateHaikuAI(theme);
+      // 调用API生成俳句
+      const response = await fetch('/api/generate-haiku', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ theme }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '生成失败');
+      }
       
       const newHaiku: Haiku = {
         id: Date.now().toString(),
-        lines: [haikuLines[0], haikuLines[1], haikuLines[2]],
+        lines: [data.lines[0], data.lines[1], data.lines[2]],
         theme,
         timestamp: new Date()
       };
